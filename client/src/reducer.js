@@ -1,4 +1,4 @@
-export default function reducer(state, { type, payload }) {
+export default function reducer(state, {type, payload}) {
     switch (type) {
         case "LOGIN_USER":
             return {
@@ -6,7 +6,7 @@ export default function reducer(state, { type, payload }) {
                 currentUser: payload,
             };
         case "IS_LOGGED_IN":
-            return  {
+            return {
                 ...state,
                 isAuth: payload
             };
@@ -15,6 +15,24 @@ export default function reducer(state, { type, payload }) {
                 ...state,
                 isAuth: false,
                 currentUser: null,
+            };
+        case "CREATE_DRAFT":
+            return {
+                ...state,
+                draft: {
+                    latitude: 0,
+                    longitude: 0
+                }
+            };
+        case "UPDATE_DRAFT_LOCATION":
+            return  {
+                ...state,
+                draft: payload
+            };
+        case "DELETE_DRAFT":
+            return  {
+                ...state,
+                draft: null
             };
         default:
             return state;
