@@ -5,12 +5,13 @@ import differenceInMinutes from 'date-fns/difference_in_minutes';
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/DeleteTwoTone";
+import {unstable_useMediaQuery as useMediaQuery} from "@material-ui/core/useMediaQuery";
 import {Subscription} from "react-apollo";
 
 import {useClient} from "../client";
 import {GET_PINS_QUERY} from "../graphql/queries";
 import {DELETE_PIN_MUTATION} from "../graphql/mutations";
-import { PIN_ADDED_SUBSCRIPTION, PIN_UPDATED_SUBSCRIPTION, PIN_DELETED_SUBSCRIPTION } from "../graphql/subscriptions";
+import {PIN_ADDED_SUBSCRIPTION, PIN_UPDATED_SUBSCRIPTION, PIN_DELETED_SUBSCRIPTION} from "../graphql/subscriptions";
 import PinIcon from "./PinIcon";
 import Blog from './Blog';
 import Context from '../context';
@@ -23,6 +24,7 @@ const INITIAL_VIEWPORT = {
 
 const Map = ({classes}) => {
     const client = useClient();
+    const mobileSize = useMediaQuery('(max-width: 650px)');
     const {state, dispatch} = useContext(Context);
 
     useEffect(() => {
@@ -38,6 +40,13 @@ const Map = ({classes}) => {
     }, []);
 
     const [popup, setPopup] = useState(null);
+
+    useEffect(() => {
+        const pinExists = popup && state.pins.findIndex(pin => pin._id === popup._id) > -1;
+        if (!pinExists) {
+            setPopup(null);
+        }
+    }, [state.pins.length]);
 
     const getPins = async () => {
         const {getPins} = await client.request(GET_PINS_QUERY);
@@ -85,12 +94,13 @@ const Map = ({classes}) => {
     };
 
     return (
-        <div className={classes.root}>
+        <div className={mobileSize ? classes.rootMobile : classes.root}>
             <ReactMapGl
                 width="100vw"
                 height="calc(100vh - 64px)"
                 mapStyle="mapbox://styles/mapbox/streets-v9"
                 mapboxApiAccessToken="pk.eyJ1IjoiZXhwaXJpdHVzIiwiYSI6ImNrMGJheWFqMTBxNWQzY3BpZjJzNGozZnUifQ.g2K2DAR9z-7fDoPpagV5oQ"
+                scrollZoom={!mobileSize}
                 onViewportChange={newViewport => setViewport(newViewport)}
                 onClick={handleMapClick}
                 {...viewport}
@@ -161,15 +171,15 @@ const Map = ({classes}) => {
             </ReactMapGl>
             <Subscription
                 subscription={PIN_ADDED_SUBSCRIPTION}
-                onSubscriptionData={({ subscriptionData }) => {
+                onSubscriptionData={({subscriptionData}) => {
                     const {pinAdded} = subscriptionData.data;
-                    console.log(pinAdded)
+                    console.log(pinAdded);
                     dispatch({type: 'CREATE_PIN', payload: pinAdded});
                 }}
             />
             <Subscription
                 subscription={PIN_UPDATED_SUBSCRIPTION}
-                onSubscriptionData={({ subscriptionData }) => {
+                onSubscriptionData={({subscriptionData}) => {
                     const {pinUpdated} = subscriptionData.data;
                     console.log(pinUpdated);
                     dispatch({type: 'CREATE_COMMENT', payload: pinUpdated});
@@ -177,7 +187,7 @@ const Map = ({classes}) => {
             />
             <Subscription
                 subscription={PIN_DELETED_SUBSCRIPTION}
-                onSubscriptionData={({ subscriptionData }) => {
+                onSubscriptionData={({subscriptionData}) => {
                     const {pinDeleted} = subscriptionData.data;
                     console.log(pinDeleted);
                     dispatch({type: 'DELETE_PIN', payload: pinDeleted});

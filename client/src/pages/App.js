@@ -7,7 +7,7 @@ import withRoot from "../withRoot";
 const App = () => {
     return (
         <>
-            <Header/>;
+            <Header/>
             <Map/>
         </>
     )
